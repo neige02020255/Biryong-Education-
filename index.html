@@ -20,9 +20,9 @@ textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;paddi
 .week-nav, .month-nav{display:flex;justify-content:space-between;align-items:center;background:#1f2937;padding:8px 12px;border-radius:10px;border:1px solid #374151;margin-bottom:8px;}
 .week-nav button, .month-nav button{width:auto;padding:5px 10px;font-size:11px;background:#374151;color:#38bdf8;border-radius:6px;}
 
-/* 🌟 요일 및 달력 그리드 칸 완벽 정렬 스타일 수정 */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:6px;width:100%;}
-.cal-hdr{background:#334151;color:#cbd5e1;font-size:9px;font-weight:bold;padding:5px 0;text-align:center;border-radius:4px;white-space:nowrap;}
+/* 🌟 요일 글씨 크기를 줄이고 줄바꿈을 원천 차단하여 박스 안에 딱 맞춤 */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-top:6px;width:100%;}
+.cal-hdr{background:#334151;color:#cbd5e1;font-size:9px;font-weight:bold;padding:4px 0;text-align:center;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cal-hdr.sat{color:#60a5fa;}
 .cal-hdr.sun{color:#f87171;}
 .cal-cell{background:#0b0f19;border:1px solid #1f2937;border-radius:8px;padding:2px;min-height:180px;display:flex;flex-direction:column;gap:3px;overflow:hidden;}
