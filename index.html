@@ -588,7 +588,7 @@ document.getElementById("btn-close").onclick = function() {
   document.getElementById("modal").style.display = "none";
 };
 
-// 🌟 모달 배경(어두운 여백)을 클릭했을 때 팝업이 닫히도록 설정
+// 🌟 팝업창 바깥의 어두운 빈 공간을 누르면 닫히도록 설정
 document.getElementById("modal").onclick = function(e) {
   if (e.target === this) {
     this.style.display = "none";
