@@ -359,7 +359,7 @@ document.getElementById("btn-add-submit").onclick = function() {
   let type = document.getElementById("new-day-type").value;
   let stVal = document.getElementById("start-time-select").value;
   let etVal = document.getElementById("end-time-select").value;
-  let pt = `${stVal}~${etVal}`;
+  let pt = `${stVal}~<br>${etVal}`; // 🌟 계획 시간 물결표 다음 줄바꿈
   let u = document.getElementById("new-unit").value;
   let s = document.getElementById("new-subject").value;
   let i = document.getElementById("new-instructor").value;
@@ -453,8 +453,11 @@ function renderCalendar() {
       let et = localStorage.getItem(item.id + "_e") || "-";
       let div = document.createElement("div");
       div.className = "item";
-      // 🌟 시작/종료를 각각 줄바꿈하여 표시
-      div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${item.planTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작: ${st}</span><br><span style="color:#f87171;">종료: ${et}</span>`;
+      
+      // 🌟 계획 시간 물결표 줄바꿈 및 시작/종료 줄바꿈 적용
+      let formattedPlanTime = item.planTime.includes("~<br>") ? item.planTime : item.planTime.replace("~", "~<br>");
+      
+      div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${formattedPlanTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작:<br>${st}</span><br><span style="color:#f87171;">종료:<br>${et}</span>`;
       
       div.addEventListener('click', (function(currItem, dayName, dateStr) {
         return function(e) {
@@ -559,7 +562,7 @@ function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
   let st = localStorage.getItem(id + "_s") || "-";
   let et = localStorage.getItem(id + "_e") || "-";
   document.getElementById("m-title").innerText = `${dayName} (${dateStr}) 상세`;
-  document.getElementById("m-body").innerHTML = `<b>계획 시간:</b> ${planTime}<br><b>부대:</b> ${unit}<br><b>과목:</b> ${subject}<br><b>교관:</b> ${instructor}`;
+  document.getElementById("m-body").innerHTML = `<b>계획 시간:</b> ${planTime.replace("<br>", " ")}<br><b>부대:</b> ${unit}<br><b>과목:</b> ${subject}<br><b>교관:</b> ${instructor}`;
   
   document.getElementById("edit-start-time").value = st === "-" ? "" : st;
   document.getElementById("edit-end-time").value = et === "-" ? "" : et;
@@ -567,7 +570,7 @@ function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
   document.getElementById("modal").style.display = "flex";
 }
 
-// 🌟 24시간제(HH:MM)로 시간 기록 함수 수정
+// 🌟 24시간제(HH:MM)로 시간 기록
 document.getElementById("btn-start").onclick = function() {
   let now = new Date();
   let h = String(now.getHours()).padStart(2, '0');
