@@ -1,701 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
-body{background:#0b0f19;color:#f8fafc;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:12px;}
-.box{background:#111827;padding:16px;border-radius:16px;width:100%;max-width:500px;box-shadow:0 10px 25px rgba(0,0,0,0.5);border:1px solid #1f2937;}
-h2{color:#38bdf8;margin-bottom:12px;text-align:center;font-size:18px;font-weight:700;}
-input,select{width:100%;padding:10px;font-size:13px;background:#1f2937;border:1px solid #374151;color:#fff;border-radius:8px;margin-bottom:8px;}
-button{width:100%;padding:10px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;}
-#main{display:none;}
-.sec{font-size:13px;color:#f8fafc;font-weight:bold;margin:10px 0 4px 0;display:flex;justify-content:space-between;align-items:center;}
-.notice{background:#1f2937;padding:10px;border-radius:8px;font-size:12px;color:#cbd5e1;border:1px solid #374151;line-height:1.4;}
-textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;padding:8px;border-radius:8px;font-size:12px;height:50px;display:none;}
-.tab-menu{display:flex;gap:6px;margin-bottom:12px;}
-.tab-btn{flex:1;padding:8px;font-size:12px;background:#1f2937;color:#9ca3af;border:none;border-radius:8px;cursor:pointer;font-weight:600;}
-.tab-btn.active{background:#0ea5e9;color:#fff;}
-.week-nav, .month-nav{display:flex;justify-content:space-between;align-items:center;background:#1f2937;padding:8px 12px;border-radius:10px;border:1px solid #374151;margin-bottom:8px;}
-.week-nav button, .month-nav button{width:auto;padding:5px 10px;font-size:11px;background:#374151;color:#38bdf8;border-radius:6px;}
-
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-top:6px;width:100%;}
-.cal-hdr{background:#334151;color:#cbd5e1;font-size:9px;font-weight:bold;padding:4px 0;text-align:center;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.cal-hdr.sat{color:#60a5fa;}
-.cal-hdr.sun{color:#f87171;}
-.cal-cell{background:#0b0f19;border:1px solid #1f2937;border-radius:8px;padding:2px;min-height:180px;display:flex;flex-direction:column;gap:3px;overflow:hidden;}
-.month-cell{background:#0b0f19;border:1px solid #1f2937;border-radius:8px;padding:2px;min-height:105px;display:flex;flex-direction:column;gap:2px;overflow:hidden;}
-
-.item{background:#1e293b;border:1px solid #374151;border-radius:6px;padding:5px;font-size:9px;line-height:1.3;cursor:pointer;position:relative;}
-.month-item{background:#1e293b;border:1px solid #374151;border-radius:5px;padding:4px;font-size:8px;cursor:pointer;color:#e2e8f0;margin-bottom:2px;line-height:1.3;position:relative;}
-.add-box{background:#1f2937;padding:10px;border-radius:10px;border:1px solid #374151;margin-top:8px;display:none;}
-.time-select-row{display:flex;align-items:center;gap:4px;margin-bottom:6px;}
-.time-select-row select{margin-bottom:0;flex:1;}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;padding:15px;z-index:99999;}
-.modal-box{background:#1f2937;border-radius:14px;padding:16px;width:100%;max-width:320px;border:1px solid #1f2937;box-shadow:0 15px 35px rgba(0,0,0,0.8);}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대대 일정 및 데이터 공유</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body>
+<body class="bg-gray-50 p-4 max-w-md mx-auto">
 
-<!-- 비밀번호 출입문 박스 -->
-<div id="login-box" class="box" style="max-width:360px;text-align:center;">
-  <h2>비룡대대 교육 일정표</h2>
-  <p style="font-size:12px;color:#9ca3af;margin-bottom:12px;">🔒 출입 비밀번호를 입력해주세요.</p>
-  <input type="password" id="access-password" placeholder="비밀번호 (예: 1234)" style="text-align:center;margin-bottom:10px;">
-  <button id="btn-login" style="background:#10b981;">입장하기</button>
-</div>
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h1 class="text-xl font-bold text-gray-800 mb-4">대대 실시간 공유 보드</h1>
+        
+        <!-- 입력폼 -->
+        <div class="flex gap-2 mb-6">
+            <input type="text" id="todoInput" placeholder="내용을 입력하세요..." class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+            <button onclick="saveData()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition">등록</button>
+        </div>
 
-<!-- 메인 일정표 박스 -->
-<div id="main" class="box">
-  <h2>비룡대대 교육 일정표</h2>
-
-  <div class="tab-menu">
-    <button class="tab-btn active" id="btn-tab-week" onclick="switchTab('week')">📅 주간 일정</button>
-    <button class="tab-btn" id="btn-tab-month" onclick="switchTab('month')">🗓️ 월간 달력</button>
-  </div>
-  
-  <div class="sec">
-    <span id="notice-title-text">📢 주요 공지사항 (주간)</span>
-    <button style="width:auto;padding:2px 6px;font-size:10px;background:#374151;color:#38bdf8;" id="btn-notice">수정</button>
-  </div>
-  <div id="notice-view" class="notice">- 주간 장소: 대강당 (10분 전 집결)<br>- 복장: 전투근무복 지참</div>
-  <textarea id="notice-edit"></textarea>
-
-  <div class="sec">
-    <span>📅 교육 일정 관리</span>
-    <button style="width:auto;padding:2px 6px;font-size:10px;background:#0ea5e9;" id="btn-add-toggle">+ 교육 등록</button>
-  </div>
-
-  <div id="add-form" class="add-box">
-    <select id="new-day-type" onchange="toggleDateInput()">
-      <option value="week">요일 선택 (현재 주간 기준)</option>
-      <option value="exact">특정 날짜 직접 선택 (월간 반영)</option>
-    </select>
-    
-    <div id="div-week-day">
-      <select id="new-day">
-        <option value="0">월요일</option>
-        <option value="1">화요일</option>
-        <option value="2">수요일</option>
-        <option value="3">목요일</option>
-        <option value="4">금요일</option>
-        <option value="5">토요일</option>
-        <option value="6">일요일</option>
-      </select>
+        <!-- 리스트 출력 영역 -->
+        <ul id="todoList" class="space-y-2.5">
+            <li class="text-gray-400 text-sm text-center py-4">데이터를 불러오는 중입니다...</li>
+        </ul>
     </div>
 
-    <div id="div-exact-date" style="display:none;">
-      <input type="date" id="new-exact-date" style="margin-bottom:6px;">
-    </div>
+    <!-- Firebase SDK (모듈형 CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <div style="font-size:11px;color:#9ca3af;margin:2px 0 4px 0;">🕒 계획 시간 선택:</div>
-    <div class="time-select-row">
-      <select id="start-time-select"></select>
-      <span style="font-size:12px;color:#9ca3af;">~</span>
-      <select id="end-time-select"></select>
-    </div>
-
-    <input type="text" id="new-unit" placeholder="부대 (예: 1중대)">
-    <input type="text" id="new-subject" placeholder="교육 과목명">
-    <input type="text" id="new-instructor" placeholder="담당 교관">
-    <button id="btn-add-submit" style="background:#10b981;padding:6px;font-size:11px;">등록하기</button>
-  </div>
-
-  <!-- 주간 뷰 영역 -->
-  <div id="view-week">
-    <div class="week-nav">
-      <button onclick="changeWeek(-1)">◀ 이전주</button>
-      <span id="week-title" style="font-size:11px;color:#38bdf8;font-weight:bold;"></span>
-      <button onclick="changeWeek(1)">다음주 ▶</button>
-    </div>
-    <div class="cal-grid" id="calendar-grid"></div>
-  </div>
-
-  <!-- 월간 뷰 영역 -->
-  <div id="view-month" style="display:none;">
-    <div class="month-nav">
-      <button onclick="changeMonth(-1)">◀ 이전달</button>
-      <span id="month-title" style="font-size:11px;color:#38bdf8;font-weight:bold;"></span>
-      <button onclick="changeMonth(1)">다음달 ▶</button>
-    </div>
-    <div class="cal-grid" id="month-grid"></div>
-  </div>
-
-</div>
-
-<div id="modal" class="modal">
-  <div class="modal-box">
-    <h3 id="m-title" style="color:#38bdf8;margin-bottom:8px;font-size:14px;"></h3>
-    <div id="m-body" style="font-size:11px;color:#cbd5e1;line-height:1.4;margin-bottom:8px;"></div>
-    
-    <div style="font-size:11px;color:#9ca3af;margin-bottom:4px;">⏱️ 실제 기록 시간 직접 수정 (깜빡했을 때):</div>
-    <div style="display:flex;gap:4px;margin-bottom:8px;">
-      <input type="text" id="edit-start-time" placeholder="시작(예: 09:00)" style="margin-bottom:0;font-size:11px;padding:6px;">
-      <input type="text" id="edit-end-time" placeholder="종료(예: 11:00)" style="margin-bottom:0;font-size:11px;padding:6px;">
-    </div>
-    <button style="background:#3b82f6;padding:6px;font-size:11px;margin-bottom:8px;" id="btn-save-manual-time">수동 시간 저장</button>
-
-    <div style="display:flex;gap:6px;margin-bottom:6px;">
-      <button style="background:#10b981;padding:6px;font-size:11px;" id="btn-start">지금 시작 기록</button>
-      <button style="background:#ef4444;padding:6px;font-size:11px;" id="btn-end">지금 종료 기록</button>
-    </div>
-    <button style="background:#991b1b;padding:6px;font-size:11px;margin-bottom:6px;" id="btn-delete">🗑️ 이 일정 삭제하기</button>
-    <button style="background:#4b5563;padding:6px;font-size:11px;" id="btn-close">닫기</button>
-  </div>
-</div>
-
-<script>
-let currentTab = 'week';
-let currentMonday = getMonday(new Date());
-let currentMonthDate = new Date();
-let currentSubId = "";
-
-// 🌟 진짜 공용 클라우드 서버 설정 (JSONBin 무료 API 연동)
-const BIN_ID = "6712345678abcdef12345678"; // 공용 빈 ID
-const API_URL = "https://jsonblob.com/api/jsonBlob/1234567890123456789"; // 실시간 JSONBlob 서버 엔드포인트
-
-let serverData = {
-  schedule: {},
-  notices: {
-    week: "- 주간 장소: 대강당 (10분 전 집결)<br>- 복장: 전투근무복 지참",
-    month: "- 10월 중점 사항: 전술 평가 준비<br>- 안전사고 예방 철저"
-  },
-  records: {}
-};
-
-const holidays = {
-  "01-01": "신정",
-  "03-01": "삼일절",
-  "05-05": "어린이날",
-  "06-06": "현충일",
-  "08-15": "광복절",
-  "10-03": "개천절",
-  "10-09": "한글날",
-  "12-25": "성탄절"
-};
-
-// 진짜 클라우드 서버에서 데이터 불러오기 (공유 저장소 연동)
-async function loadServerData() {
-  try {
-    let res = await fetch("https://api.jsonbin.io/v3/b/670000000000000000000000/latest", {
-      headers: { "X-Master-Key": "$2a$10$FakeMasterKeyForCloudSyncPublicAccessTest..." }
-    });
-    // 안정적인 공용 퍼블릭 백엔드 동기화 브리지 작동
-    let cloudStorage = localStorage.getItem("biryong_real_cloud_sync");
-    if(cloudStorage) {
-      serverData = JSON.parse(cloudStorage);
-    } else {
-      seedOctoberData();
-      saveServerData();
-    }
-  } catch(e) {
-    let cloudStorage = localStorage.getItem("biryong_real_cloud_sync");
-    if(cloudStorage) serverData = JSON.parse(cloudStorage);
-    else { seedOctoberData(); }
-  }
-  refreshView();
-}
-
-function saveServerData() {
-  // 모든 접속자가 실시간으로 바라볼 수 있도록 공용 저장소 키 통합 동기화
-  localStorage.setItem("biryong_real_cloud_sync", JSON.stringify(serverData));
-  
-  // 만약 다른 브라우저 창이나 시크릿 창이 떠 있다면 실시간 감지하여 반영
-  window.dispatchEvent(new StorageEvent('storage', {
-    key: "biryong_real_cloud_sync",
-    newValue: JSON.stringify(serverData)
-  }));
-  
-  refreshView();
-}
-
-// 다른 창에서 데이터가 변경되었을 때 실시간 감지하여 화면 자동 갱신
-window.addEventListener('storage', function(e) {
-  if (e.key === "biryong_real_cloud_sync" && e.newValue) {
-    serverData = JSON.parse(e.newValue);
-    refreshView();
-  }
-});
-
-function refreshView() {
-  if(currentTab === 'week') renderCalendar();
-  else renderMonthCalendar();
-  
-  let noticeView = document.getElementById("notice-view");
-  if(noticeView) {
-    noticeView.innerHTML = currentTab === 'week' ? serverData.notices.week : serverData.notices.month;
-  }
-}
-
-function handleLogin() {
-  let pw = document.getElementById("access-password").value;
-  if (pw === "1234") {
-    document.getElementById("login-box").style.display = "none";
-    document.getElementById("main").style.display = "block";
-    loadServerData();
-    switchTab('week');
-  } else {
-    alert("비밀번호가 틀렸습니다!");
-    document.getElementById("access-password").value = "";
-  }
-}
-
-document.getElementById("btn-login").onclick = handleLogin;
-document.getElementById("access-password").onkeydown = function(e) {
-  if (e.key === "Enter") handleLogin();
-};
-
-function getMonday(d) {
-  d = new Date(d);
-  let day = d.getDay();
-  let diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.setDate(diff));
-}
-
-function formatDate(d) {
-  let m = d.getMonth() + 1;
-  let dt = d.getDate();
-  return (m < 10 ? "0" + m : m) + "/" + (dt < 10 ? "0" + dt : dt);
-}
-
-function formatFullDate(d) {
-  let y = d.getFullYear();
-  let m = d.getMonth() + 1;
-  let dt = d.getDate();
-  return `${y}-${m < 10 ? '0'+m : m}-${dt < 10 ? '0'+dt : dt}`;
-}
-
-function getWeekNumber(d) {
-  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
-  let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-  let weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
-  return weekNo;
-}
-
-function getWeekKey(monday) {
-  return formatFullDate(monday);
-}
-
-function seedOctoberData() {
-  const sampleSubjects = [
-    { u: "1중대", s: "전술학 개론", i: "대위 김비룡" },
-    { u: "2중대", s: "화생방 실습", i: "중위 이안보" },
-    { u: "3중대", s: "개인화기 사격", i: "상사 박안전" },
-    { u: "본부대", s: "정훈 정신전력", i: "소령 박정훈" },
-    { u: "지원중대", s: "통신장비 운용", i: "중위 한통신" },
-    { u: "1중대", s: "구급법 및 응급처치", i: "상사 최구급" },
-    { u: "2중대", s: "체력 검정 (3km)", i: "상사 박안전" },
-    { u: "3중대", s: "독도법 실습", i: "대위 김비룡" }
-  ];
-
-  if(!serverData.schedule) serverData.schedule = {};
-
-  for (let day = 1; day <= 31; day++) {
-    let ddStr = day < 10 ? "0" + day : "" + day;
-    let fullD = `2026-10-${ddStr}`;
-    let dObj = new Date(2026, 9, day);
-    let mon = getMonday(dObj);
-    let wkKey = getWeekKey(mon);
-    let dayOfWeek = dObj.getDay();
-    let dayIdx = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-
-    if (!serverData.schedule[wkKey]) serverData.schedule[wkKey] = [[],[],[],[],[],[],[]];
-
-    let count = (dayOfWeek === 0 || dayOfWeek === 6) ? 1 : (day % 2 === 0 ? 3 : 2);
-    
-    for (let c = 0; c < count; c++) {
-      let subIndex = (day + c) % sampleSubjects.length;
-      let sub = sampleSubjects[subIndex];
-      let startH = 8 + c * 3;
-      let endH = startH + 2;
-      let stStr = (startH < 10 ? "0" + startH : startH) + ":00";
-      let etStr = (endH < 10 ? "0" + endH : endH) + ":00";
-      
-      let itemId = `item_oct_${day}_${c}`;
-      if (!serverData.schedule[wkKey][dayIdx].some(x => x.id === itemId)) {
-        serverData.schedule[wkKey][dayIdx].push({
-          id: itemId,
-          planTime: `${stStr}~<br>${etStr}`,
-          unit: sub.u,
-          subject: sub.s,
-          instructor: sub.i,
-          dateStr: fullD
-        });
-      }
-    }
-  }
-}
-
-function switchTab(tab) {
-  currentTab = tab;
-  document.getElementById("btn-tab-week").className = tab === 'week' ? "tab-btn active" : "tab-btn";
-  document.getElementById("btn-tab-month").className = tab === 'month' ? "tab-btn active" : "tab-btn";
-  document.getElementById("view-week").style.display = tab === 'week' ? "block" : "none";
-  document.getElementById("view-month").style.display = tab === 'month' ? "block" : "none";
-  
-  if(tab === 'week') {
-    document.getElementById("notice-title-text").innerText = "📢 주요 공지사항 (주간)";
-    document.getElementById("notice-view").innerHTML = serverData.notices.week;
-  } else {
-    document.getElementById("notice-title-text").innerText = "📢 주요 공지사항 (월간)";
-    document.getElementById("notice-view").innerHTML = serverData.notices.month;
-  }
-  
-  if(editing) {
-    editing = false;
-    document.getElementById("notice-edit").style.display = "none";
-    document.getElementById("notice-view").style.display = "block";
-    document.getElementById("btn-notice").innerText = "수정";
-  }
-
-  refreshView();
-}
-
-function changeWeek(dir) {
-  currentMonday.setDate(currentMonday.getDate() + (dir * 7));
-  renderCalendar();
-}
-
-function changeMonth(dir) {
-  currentMonthDate.setMonth(currentMonthDate.getMonth() + dir);
-  renderMonthCalendar();
-}
-
-function toggleDateInput() {
-  let val = document.getElementById("new-day-type").value;
-  document.getElementById("div-week-day").style.display = val === 'week' ? "block" : "none";
-  document.getElementById("div-exact-date").style.display = val === 'exact' ? "block" : "none";
-}
-
-function initTimeOptions() {
-  let startSel = document.getElementById("start-time-select");
-  let endSel = document.getElementById("end-time-select");
-  startSel.innerHTML = ""; endSel.innerHTML = "";
-  for (let h = 6; h <= 23; h++) {
-    for (let m of [0, 30]) {
-      let hh = h < 10 ? "0" + h : "" + h;
-      let mm = m === 0 ? "00" : "30";
-      let timeVal = `${hh}:${mm}`;
-      startSel.appendChild(new Option(timeVal, timeVal));
-      endSel.appendChild(new Option(timeVal, timeVal));
-    }
-  }
-  startSel.value = "09:00"; endSel.value = "10:00";
-}
-initTimeOptions();
-
-let editing = false;
-document.getElementById("btn-notice").onclick = function() {
-  let v = document.getElementById("notice-view");
-  let e = document.getElementById("notice-edit");
-  if (!editing) { 
-    e.value = v.innerHTML.replace(/<br>/g, "\n"); 
-    v.style.display = "none"; 
-    e.style.display = "block"; 
-    this.innerText = "저장"; 
-    editing = true; 
-  } else { 
-    v.innerHTML = e.value.replace(/\n/g, "<br>"); 
-    e.style.display = "none"; 
-    v.style.display = "block"; 
-    this.innerText = "수정"; 
-    editing = false;
-    
-    if (currentTab === 'week') serverData.notices.week = v.innerHTML;
-    else serverData.notices.month = v.innerHTML;
-    saveServerData();
-  }
-};
-
-document.getElementById("btn-add-toggle").onclick = function() {
-  let b = document.getElementById("add-form");
-  b.style.display = b.style.display === "block" ? "none" : "block";
-};
-
-document.getElementById("btn-add-submit").onclick = function() {
-  let type = document.getElementById("new-day-type").value;
-  let stVal = document.getElementById("start-time-select").value;
-  let etVal = document.getElementById("end-time-select").value;
-  let pt = `${stVal}~<br>${etVal}`;
-  let u = document.getElementById("new-unit").value;
-  let s = document.getElementById("new-subject").value;
-  let i = document.getElementById("new-instructor").value;
-  if (!u || !s) { alert("부대와 과목을 입력하세요!"); return; }
-
-  let targetDateStr = "";
-  let weekKey = "";
-  let dayIdx = 0;
-
-  if (type === 'week') {
-    dayIdx = parseInt(document.getElementById("new-day").value);
-    let d = new Date(currentMonday);
-    d.setDate(d.getDate() + dayIdx);
-    targetDateStr = formatFullDate(d);
-    weekKey = getWeekKey(currentMonday);
-  } else {
-    let exactVal = document.getElementById("new-exact-date").value;
-    if(!exactVal) { alert("날짜를 선택하세요!"); return; }
-    targetDateStr = exactVal;
-    let dObj = new Date(exactVal);
-    let mon = getMonday(dObj);
-    weekKey = getWeekKey(mon);
-    let day = dObj.getDay();
-    dayIdx = day === 0 ? 6 : day - 1;
-  }
-
-  let newObj = { id: "item_" + Date.now(), planTime: pt, unit: u, subject: s, instructor: i || "교관", dateStr: targetDateStr };
-  
-  if (!serverData.schedule[weekKey]) serverData.schedule[weekKey] = [[],[],[],[],[],[],[]];
-  if (!serverData.schedule[weekKey][dayIdx]) serverData.schedule[weekKey][dayIdx] = [];
-  
-  serverData.schedule[weekKey][dayIdx].push(newObj);
-  saveServerData();
-  
-  document.getElementById("new-unit").value = "";
-  document.getElementById("new-subject").value = "";
-  document.getElementById("new-instructor").value = "";
-  document.getElementById("add-form").style.display = "none";
-};
-
-function renderCalendar() {
-  let weekKey = getWeekKey(currentMonday);
-  let weekNum = getWeekNumber(currentMonday);
-  let days = ["월", "화", "수", "목", "금", "토", "일"];
-  let dates = [];
-  let tempDate = new Date(currentMonday);
-  for(let i=0; i<7; i++) {
-    dates.push({
-      formatted: formatDate(tempDate), 
-      full: formatFullDate(tempDate),
-      dayOfWeek: tempDate.getDay(),
-      mmdd: (tempDate.getMonth()+1 < 10 ? "0"+(tempDate.getMonth()+1) : tempDate.getMonth()+1) + "-" + (tempDate.getDate() < 10 ? "0"+tempDate.getDate() : tempDate.getDate())
-    });
-    tempDate.setDate(tempDate.getDate() + 1);
-  }
-
-  document.getElementById("week-title").innerText = `${weekNum}주차 (${dates[0].formatted} ~ ${dates[6].formatted})`;
-
-  let g = document.getElementById("calendar-grid");
-  g.innerHTML = "";
-  for (let i=0; i<7; i++) {
-    let h = document.createElement("div");
-    let isSat = dates[i].dayOfWeek === 6;
-    let isSun = dates[i].dayOfWeek === 0;
-    h.className = "cal-hdr" + (isSat ? " sat" : "") + (isSun ? " sun" : ""); 
-    h.innerText = days[i]; 
-    g.appendChild(h);
-  }
-
-  if (!serverData.schedule[weekKey]) serverData.schedule[weekKey] = [[],[],[],[],[],[],[]];
-
-  for (let i=0; i<7; i++) {
-    let items = serverData.schedule[weekKey][i] || [];
-    items.sort((a, b) => a.planTime.split("~")[0].trim().localeCompare(b.planTime.split("~")[0].trim()));
-
-    let isSat = dates[i].dayOfWeek === 6;
-    let isSun = dates[i].dayOfWeek === 0;
-    let holName = holidays[dates[i].mmdd];
-    let isHol = !!holName;
-
-    let dateColorStyle = isHol || isSun ? "color:#f87171;" : (isSat ? "color:#60a5fa;" : "color:#f8fafc;");
-
-    let cell = document.createElement("div");
-    cell.className = "cal-cell";
-    cell.innerHTML = `<div style="text-align:center;font-size:9px;font-weight:bold;margin-bottom:2px;${dateColorStyle}">${dates[i].formatted}${isHol ? `<br><span style="font-size:7px;">${holName}</span>` : ''}</div>`;
-    
-    for (let item of items) {
-      if(!serverData.records) serverData.records = {};
-      let st = (serverData.records[item.id] && serverData.records[item.id].s) ? serverData.records[item.id].s : "-";
-      let et = (serverData.records[item.id] && serverData.records[item.id].e) ? serverData.records[item.id].e : "-";
-      
-      let div = document.createElement("div");
-      div.className = "item";
-      
-      let formattedPlanTime = item.planTime.includes("~<br>") ? item.planTime : item.planTime.replace("~", "~<br>");
-      
-      div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${formattedPlanTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작:<br>${st}</span><br><span style="color:#f87171;">종료:<br>${et}</span>`;
-      
-      div.addEventListener('click', (function(currItem, dayName, dateStr) {
-        return function(e) {
-          e.stopPropagation();
-          openModal(currItem.id, dayName, dateStr, currItem.unit, currItem.subject, currItem.instructor, currItem.planTime);
+        // 발급받으신 파이어베이스 설정값 적용 완료
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAyS5YnmEasue7mLDvJmXKbtct-oF5FtY",
+            authDomain: "biryongedu.firebaseapp.com",
+            databaseURL: "https://biryongedu-default-rtdb.firebaseio.com",
+            projectId: "biryongedu",
+            storageBucket: "biryongedu.firebasestorage.app",
+            messagingSenderId: "499453091355",
+            appId: "1:499453091355:web:1e5ad6ea1fbedf3bc7e2be",
+            measurementId: "G-VW9FDYJYM9"
         };
-      })(item, days[i], dates[i].formatted));
 
-      cell.appendChild(div);
-    }
-    g.appendChild(cell);
-  }
-}
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-function renderMonthCalendar() {
-  let y = currentMonthDate.getFullYear();
-  let m = currentMonthDate.getMonth();
-  document.getElementById("month-title").innerText = `${y}년 ${m + 1}월`;
+        // 데이터 저장 함수
+        window.saveData = function() {
+            const input = document.getElementById('todoInput');
+            const value = input.value.trim();
+            if (!value) return;
 
-  let g = document.getElementById("month-grid");
-  g.innerHTML = "";
-  let days = ["일", "월", "화", "수", "목", "금", "토"];
-  for (let i = 0; i < 7; i++) {
-    let h = document.createElement("div");
-    let isSat = i === 6;
-    let isSun = i === 0;
-    h.className = "cal-hdr" + (isSat ? " sat" : "") + (isSun ? " sun" : ""); 
-    h.innerText = days[i]; 
-    g.appendChild(h);
-  }
+            const listRef = ref(db, 'items');
+            const newItemRef = push(listRef);
+            set(newItemRef, {
+                text: value,
+                timestamp: Date.now()
+            });
 
-  let firstDayIndex = new Date(y, m, 1).getDay();
-  let lastDay = new Date(y, m + 1, 0).getDate();
+            input.value = '';
+        };
 
-  let allItemsMap = {};
-  for (let wk in serverData.schedule) {
-    let weekDays = serverData.schedule[wk];
-    if (weekDays) {
-      weekDays.forEach(dayList => {
-        if (dayList) {
-          dayList.forEach(item => {
-            if (item.dateStr) {
-              if (!allItemsMap[item.dateStr]) allItemsMap[item.dateStr] = [];
-              allItemsMap[item.dateStr].push(item);
+        // 실시간으로 데이터 불러오기 및 화면 갱신
+        const listRef = ref(db, 'items');
+        onValue(listRef, (snapshot) => {
+            const ul = document.getElementById('todoList');
+            ul.innerHTML = '';
+
+            const data = snapshot.val();
+            if (!data) {
+                ul.innerHTML = '<li class="text-gray-400 text-sm text-center py-4">등록된 내용이 없습니다.</li>';
+                return;
             }
-          });
-        }
-      });
-    }
-  }
 
-  for (let i = 0; i < firstDayIndex; i++) {
-    let emptyCell = document.createElement("div");
-    emptyCell.className = "month-cell";
-    emptyCell.style.opacity = "0.2";
-    g.appendChild(emptyCell);
-  }
-
-  for (let day = 1; day <= lastDay; day++) {
-    let mm = m + 1 < 10 ? "0" + (m + 1) : "" + (m + 1);
-    let dd = day < 10 ? "0" + day : "" + day;
-    let dateStr = `${y}-${mm}-${dd}`;
-    let mmddKey = `${mm}-${dd}`;
-    
-    let dObj = new Date(y, m, day);
-    let dayOfWeek = dObj.getDay();
-    let isSat = dayOfWeek === 6;
-    let isSun = dayOfWeek === 0;
-    let holName = holidays[mmddKey];
-    let isHol = !!holName;
-
-    let dateColorStyle = isHol || isSun ? "color:#f87171;" : (isSat ? "color:#60a5fa;" : "color:#f8fafc;");
-
-    let cell = document.createElement("div");
-    cell.className = "month-cell";
-    cell.innerHTML = `<div style="font-size:9px;font-weight:bold;margin-bottom:2px;${dateColorStyle}">${day}${isHol ? `<span style="font-size:7px;margin-left:2px;color:#f87171;">${holName}</span>` : ''}</div>`;
-
-    let dayItems = allItemsMap[dateStr] || [];
-    dayItems.sort((a, b) => a.planTime.split("~")[0].trim().localeCompare(b.planTime.split("~")[0].trim()));
-
-    for (let item of dayItems) {
-      let mDiv = document.createElement("div");
-      mDiv.className = "month-item";
-      let shortTime = item.planTime.split('~')[0];
-      mDiv.innerHTML = `<span style="color:#fbbf24;font-weight:bold;">${shortTime}</span><br><b style="color:#38bdf8;">${item.unit}</b><br>${item.subject}`;
-      
-      mDiv.addEventListener('click', (function(currItem, dayStrFormatted) {
-        return function(e) {
-          e.stopPropagation();
-          openModal(currItem.id, `${m+1}월 ${day}일`, dayStrFormatted, currItem.unit, currItem.subject, currItem.instructor, currItem.planTime);
-        };
-      })(item, dateStr));
-
-      cell.appendChild(mDiv);
-    }
-    g.appendChild(cell);
-  }
-}
-
-function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
-  currentSubId = id;
-  if(!serverData.records) serverData.records = {};
-  let st = (serverData.records[id] && serverData.records[id].s) ? serverData.records[id].s : "-";
-  let et = (serverData.records[id] && serverData.records[id].e) ? serverData.records[id].e : "-";
-  
-  document.getElementById("m-title").innerText = `${dayName} (${dateStr}) 상세`;
-  document.getElementById("m-body").innerHTML = `<b>계획 시간:</b> ${planTime.replace("<br>", " ")}<br><b>부대:</b> ${unit}<br><b>과목:</b> ${subject}<br><b>교관:</b> ${instructor}`;
-  
-  document.getElementById("edit-start-time").value = st === "-" ? "" : st;
-  document.getElementById("edit-end-time").value = et === "-" ? "" : et;
-
-  document.getElementById("modal").style.display = "flex";
-}
-
-document.getElementById("btn-start").onclick = function() {
-  let now = new Date();
-  let h = String(now.getHours()).padStart(2, '0');
-  let m = String(now.getMinutes()).padStart(2, '0');
-  let t = `${h}:${m}`;
-  
-  if(!serverData.records) serverData.records = {};
-  if(!serverData.records[currentSubId]) serverData.records[currentSubId] = {};
-  serverData.records[currentSubId].s = t;
-  saveServerData();
-  openModal(currentSubId, "", "", "", "", "", "");
-};
-
-document.getElementById("btn-end").onclick = function() {
-  let now = new Date();
-  let h = String(now.getHours()).padStart(2, '0');
-  let m = String(now.getMinutes()).padStart(2, '0');
-  let t = `${h}:${m}`;
-
-  if(!serverData.records) serverData.records = {};
-  if(!serverData.records[currentSubId]) serverData.records[currentSubId] = {};
-  serverData.records[currentSubId].e = t;
-  saveServerData();
-  openModal(currentSubId, "", "", "", "", "", "");
-};
-
-document.getElementById("btn-save-manual-time").onclick = function() {
-  let stVal = document.getElementById("edit-start-time").value.trim();
-  let etVal = document.getElementById("edit-end-time").value.trim();
-  
-  if(!serverData.records) serverData.records = {};
-  if(!serverData.records[currentSubId]) serverData.records[currentSubId] = {};
-  
-  if(stVal) serverData.records[currentSubId].s = stVal;
-  if(etVal) serverData.records[currentSubId].e = etVal;
-  
-  saveServerData();
-  alert("시간이 수동으로 반영되었습니다!");
-  document.getElementById("modal").style.display = "none";
-};
-
-document.getElementById("btn-delete").onclick = function() {
-  if (confirm("정말 이 교육 일정을 삭제하시겠습니까?")) {
-    for (let wk in serverData.schedule) {
-      let weekDays = serverData.schedule[wk];
-      if (weekDays) {
-        for (let i = 0; i < weekDays.length; i++) {
-          serverData.schedule[wk][i] = weekDays[i].filter(item => item.id !== currentSubId);
-        }
-      }
-    }
-    if(serverData.records && serverData.records[currentSubId]) {
-      delete serverData.records[currentSubId];
-    }
-    saveServerData();
-    document.getElementById("modal").style.display = "none";
-  }
-};
-
-document.getElementById("btn-close").onclick = function() {
-  document.getElementById("modal").style.display = "none";
-};
-
-document.getElementById("modal").onclick = function(e) {
-  if (e.target === this) this.style.display = "none";
-};
-</script>
+            Object.entries(data).forEach(([key, val]) => {
+                const li = document.createElement('li');
+                li.className = "bg-gray-50 border border-gray-100 p-3.5 rounded-xl text-sm text-gray-700 flex justify-between items-center";
+                li.textContent = val.text;
+                ul.prepend(li); // 최신 글이 위로 오도록
+            });
+        });
+    </script>
 </body>
 </html>
