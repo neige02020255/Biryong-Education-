@@ -10,7 +10,7 @@ body{background:#0b0f19;color:#f8fafc;display:flex;justify-content:center;align-
 h2{color:#38bdf8;margin-bottom:12px;text-align:center;font-size:18px;font-weight:700;}
 input,select{width:100%;padding:10px;font-size:13px;background:#1f2937;border:1px solid #374151;color:#fff;border-radius:8px;margin-bottom:8px;}
 button{width:100%;padding:10px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;}
-#main{display:block;}
+#main{display:none;} /* 처음에 일정표는 숨김 */
 .sec{font-size:13px;color:#f8fafc;font-weight:bold;margin:10px 0 4px 0;display:flex;justify-content:space-between;align-items:center;}
 .notice{background:#1f2937;padding:10px;border-radius:8px;font-size:12px;color:#cbd5e1;border:1px solid #374151;line-height:1.4;}
 textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;padding:8px;border-radius:8px;font-size:12px;height:50px;display:none;}
@@ -36,6 +36,15 @@ textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;paddi
 </head>
 <body>
 
+<!-- 비밀번호 출입문 박스 -->
+<div id="login-box" class="box" style="max-width:360px;text-align:center;">
+  <h2>비룡대대 교육 일정표</h2>
+  <p style="font-size:12px;color:#9ca3af;margin-bottom:12px;">🔒 출입 비밀번호를 입력해주세요.</p>
+  <input type="password" id="access-password" placeholder="비밀번호 (예: 1234)" style="text-align:center;margin-bottom:10px;">
+  <button id="btn-login" style="background:#10b981;">입장하기</button>
+</div>
+
+<!-- 메인 일정표 박스 -->
 <div id="main" class="box">
   <h2>비룡대대 교육 일정표</h2>
 
@@ -155,6 +164,27 @@ const holidays = {
 let noticeData = JSON.parse(localStorage.getItem("noticeData_v14")) || {
   week: "- 주간 장소: 대강당 (10분 전 집결)<br>- 복장: 전투근무복 지참",
   month: "- 10월 중점 사항: 전술 평가 준비<br>- 안전사고 예방 철저"
+};
+
+// 🌟 비밀번호 확인 및 입장 처리 함수
+function handleLogin() {
+  let pw = document.getElementById("access-password").value;
+  // 👉 비밀번호를 바꾸고 싶으시면 아래 '1234'를 원하는 숫자로 변경하세요!
+  if (pw === "1234") {
+    document.getElementById("login-box").style.display = "none";
+    document.getElementById("main").style.display = "block";
+    switchTab('week');
+  } else {
+    alert("비밀번호가 틀렸습니다!");
+    document.getElementById("access-password").value = "";
+  }
+}
+
+document.getElementById("btn-login").onclick = handleLogin;
+document.getElementById("access-password").onkeydown = function(e) {
+  if (e.key === "Enter") {
+    handleLogin();
+  }
 };
 
 function getMonday(d) {
@@ -588,14 +618,12 @@ document.getElementById("btn-close").onclick = function() {
   document.getElementById("modal").style.display = "none";
 };
 
-// 🌟 팝업창 바깥의 어두운 빈 공간을 누르면 닫히도록 설정
+// 모달 배경 클릭 시 닫기
 document.getElementById("modal").onclick = function(e) {
   if (e.target === this) {
     this.style.display = "none";
   }
 };
-
-switchTab('week');
 </script>
 </body>
 </html>
