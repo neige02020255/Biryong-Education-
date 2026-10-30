@@ -425,7 +425,6 @@ function renderCalendar() {
       div.className = "item";
       div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${item.planTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작: ${st}</span><br><span style="color:#f87171;">종료: ${et}</span>`;
       
-      // 카드 전체 영역 클릭 시 확실하게 팝업창 오픈
       div.addEventListener('click', (function(currItem, dayName, dateStr) {
         return function(e) {
           e.stopPropagation();
@@ -587,6 +586,13 @@ document.getElementById("btn-delete").onclick = function() {
 
 document.getElementById("btn-close").onclick = function() {
   document.getElementById("modal").style.display = "none";
+};
+
+// 🌟 모달 배경(어두운 여백)을 클릭했을 때 팝업이 닫히도록 설정
+document.getElementById("modal").onclick = function(e) {
+  if (e.target === this) {
+    this.style.display = "none";
+  }
 };
 
 switchTab('week');
