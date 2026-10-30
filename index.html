@@ -10,7 +10,7 @@ body{background:#0b0f19;color:#f8fafc;display:flex;justify-content:center;align-
 h2{color:#38bdf8;margin-bottom:12px;text-align:center;font-size:18px;font-weight:700;}
 input,select{width:100%;padding:10px;font-size:13px;background:#1f2937;border:1px solid #374151;color:#fff;border-radius:8px;margin-bottom:8px;}
 button{width:100%;padding:10px;background:#0ea5e9;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer;}
-#main,.modal{display:none;}
+#main{display:block;}
 .sec{font-size:13px;color:#f8fafc;font-weight:bold;margin:10px 0 4px 0;display:flex;justify-content:space-between;align-items:center;}
 .notice{background:#1f2937;padding:10px;border-radius:8px;font-size:12px;color:#cbd5e1;border:1px solid #374151;line-height:1.4;}
 textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;padding:8px;border-radius:8px;font-size:12px;height:50px;display:none;}
@@ -20,23 +20,23 @@ textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;paddi
 .week-nav, .month-nav{display:flex;justify-content:space-between;align-items:center;background:#1f2937;padding:8px 12px;border-radius:10px;border:1px solid #374151;margin-bottom:8px;}
 .week-nav button, .month-nav button{width:auto;padding:5px 10px;font-size:11px;background:#374151;color:#38bdf8;border-radius:6px;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:6px;}
-.cal-hdr{background:#374151;color:#cbd5e1;font-size:11px;font-weight:bold;padding:6px 0;text-align:center;border-radius:4px;}
+.cal-hdr{background:#334151;color:#cbd5e1;font-size:11px;font-weight:bold;padding:6px 0;text-align:center;border-radius:4px;}
 .cal-hdr.sat{color:#60a5fa;}
 .cal-hdr.sun{color:#f87171;}
 .cal-cell{background:#0b0f19;border:1px solid #1f2937;border-radius:8px;padding:4px;min-height:180px;display:flex;flex-direction:column;gap:3px;}
-.month-cell{background:#0b0f19;border:1px solid #1f2937;border-radius:8px;padding:3px;min-height:100px;display:flex;flex-direction:column;gap:2px;overflow:hidden;}
+.month-cell{background:#0b0f19;border:1px solid #1f2937;border-radius:8px;padding:3px;min-height:105px;display:flex;flex-direction:column;gap:2px;overflow:hidden;}
 .item{background:#1e293b;border:1px solid #374151;border-radius:6px;padding:5px;font-size:9px;line-height:1.3;cursor:pointer;}
-.month-item{background:#1e293b;border:1px solid #374151;border-radius:5px;padding:3px 4px;font-size:8px;cursor:pointer;color:#e2e8f0;margin-bottom:2px;line-height:1.2;}
+.month-item{background:#1e293b;border:1px solid #374151;border-radius:5px;padding:3px 4px;font-size:8px;cursor:pointer;color:#e2e8f0;margin-bottom:2px;line-height:1.3;}
 .add-box{background:#1f2937;padding:10px;border-radius:10px;border:1px solid #374151;margin-top:8px;display:none;}
 .time-select-row{display:flex;align-items:center;gap:4px;margin-bottom:6px;}
 .time-select-row select{margin-bottom:0;flex:1;}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:none;justify-content:center;align-items:center;padding:15px;z-index:10;}
-.modal-box{background:#1f2937;border-radius:14px;padding:16px;width:100%;max-width:320px;border:1px solid #1f2937;box-shadow:0 10px 25px rgba(0,0,0,0.5);}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;padding:15px;z-index:99999;}
+.modal-box{background:#1f2937;border-radius:14px;padding:16px;width:100%;max-width:320px;border:1px solid #374151;box-shadow:0 15px 35px rgba(0,0,0,0.8);}
 </style>
 </head>
 <body>
 
-<div id="gate" class="box">
+<div id="gate" class="box" style="display:none;">
   <h2>비룡대대 교육 일정표</h2>
   <input type="password" id="pw" placeholder="비밀번호 입력">
   <button id="btn-login">입장하기</button>
@@ -303,14 +303,6 @@ function initTimeOptions() {
 }
 initTimeOptions();
 
-document.getElementById("btn-login").onclick = function() {
-  if (document.getElementById("pw").value === "1234") {
-    document.getElementById("gate").style.display = "none";
-    document.getElementById("main").style.display = "block";
-    switchTab('week');
-  } else { alert("비밀번호 틀림!"); }
-};
-
 let editing = false;
 document.getElementById("btn-notice").onclick = function() {
   let v = document.getElementById("notice-view");
@@ -437,7 +429,7 @@ function renderCalendar() {
       let et = localStorage.getItem(item.id + "_e") || "-";
       let div = document.createElement("div");
       div.className = "item";
-      div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${item.planTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#9ca3af;">${item.instructor}</span><br><span style="color:#4ade80;">시작: ${st}</span><br><span style="color:#ef4444;">종료: ${et}</span>`;
+      div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${item.planTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작: ${st}</span><br><span style="color:#f87171;">종료: ${et}</span>`;
       
       div.onclick = (function(currItem, dayName, dateStr) {
         return function(e) {
@@ -492,7 +484,7 @@ function renderMonthCalendar() {
   for (let i = 0; i < firstDayIndex; i++) {
     let emptyCell = document.createElement("div");
     emptyCell.className = "month-cell";
-    emptyCell.style.opacity = "0.1";
+    emptyCell.style.opacity = "0.2";
     g.appendChild(emptyCell);
   }
 
@@ -543,7 +535,7 @@ function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
   let et = localStorage.getItem(id + "_e") || "-";
   document.getElementById("m-title").innerText = `${dayName} (${dateStr}) 상세`;
   document.getElementById("m-body").innerHTML = `<b>계획 시간:</b> ${planTime}<br><b>부대:</b> ${unit}<br><b>과목:</b> ${subject}<br><b>교관:</b> ${instructor}`;
-  document.getElementById("m-log").innerHTML = `<span style="color:#4ade80;">🟢 시작: ${st}</span><br><span style="color:#ef4444;">🔴 종료: ${et}</span>`;
+  document.getElementById("m-log").innerHTML = `<span style="color:#4ade80;">🟢 시작: ${st}</span><br><span style="color:#f87171;">🔴 종료: ${et}</span>`;
   
   document.getElementById("edit-start-time").value = st === "-" ? "" : st;
   document.getElementById("edit-end-time").value = et === "-" ? "" : et;
@@ -602,6 +594,8 @@ document.getElementById("btn-delete").onclick = function() {
 document.getElementById("btn-close").onclick = function() {
   document.getElementById("modal").style.display = "none";
 };
+
+switchTab('week');
 </script>
 </body>
 </html>
