@@ -20,7 +20,6 @@ textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;paddi
 .week-nav, .month-nav{display:flex;justify-content:space-between;align-items:center;background:#1f2937;padding:8px 12px;border-radius:10px;border:1px solid #374151;margin-bottom:8px;}
 .week-nav button, .month-nav button{width:auto;padding:5px 10px;font-size:11px;background:#374151;color:#38bdf8;border-radius:6px;}
 
-/* 🌟 요일 글씨 크기를 줄이고 줄바꿈을 원천 차단하여 박스 안에 딱 맞춤 */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;margin-top:6px;width:100%;}
 .cal-hdr{background:#334151;color:#cbd5e1;font-size:9px;font-weight:bold;padding:4px 0;text-align:center;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cal-hdr.sat{color:#60a5fa;}
@@ -454,6 +453,7 @@ function renderCalendar() {
       let et = localStorage.getItem(item.id + "_e") || "-";
       let div = document.createElement("div");
       div.className = "item";
+      // 🌟 시작/종료를 각각 줄바꿈하여 표시
       div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${item.planTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작: ${st}</span><br><span style="color:#f87171;">종료: ${et}</span>`;
       
       div.addEventListener('click', (function(currItem, dayName, dateStr) {
@@ -567,8 +567,13 @@ function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
   document.getElementById("modal").style.display = "flex";
 }
 
+// 🌟 24시간제(HH:MM)로 시간 기록 함수 수정
 document.getElementById("btn-start").onclick = function() {
-  let t = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  let now = new Date();
+  let h = String(now.getHours()).padStart(2, '0');
+  let m = String(now.getMinutes()).padStart(2, '0');
+  let t = `${h}:${m}`;
+  
   localStorage.setItem(currentSubId + "_s", t);
   openModal(currentSubId, "", "", "", "", "", "");
   renderCalendar();
@@ -576,7 +581,11 @@ document.getElementById("btn-start").onclick = function() {
 };
 
 document.getElementById("btn-end").onclick = function() {
-  let t = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  let now = new Date();
+  let h = String(now.getHours()).padStart(2, '0');
+  let m = String(now.getMinutes()).padStart(2, '0');
+  let t = `${h}:${m}`;
+
   localStorage.setItem(currentSubId + "_e", t);
   openModal(currentSubId, "", "", "", "", "", "");
   renderCalendar();
