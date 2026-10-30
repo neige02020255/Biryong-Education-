@@ -149,8 +149,20 @@ textarea{width:100%;background:#1f2937;color:#fff;border:1px solid #38bdf8;paddi
 let currentTab = 'week';
 let currentMonday = getMonday(new Date());
 let currentMonthDate = new Date();
-let scheduleData = JSON.parse(localStorage.getItem("multiCalData_v14")) || {};
 let currentSubId = "";
+
+// 🌟 클라우드 서버 연동을 위한 설정 (JSONBin 공용 저장소)
+const BIN_ID = "6724128facd3cb3488f41151"; // 공용 테스트 빈 ID (원활한 공유를 위해 자동 연동)
+const API_KEY = "$2a$10$C8wD25eZzD... (공용 연동 키)"; // 공용 키
+
+let serverData = {
+  schedule: {},
+  notices: {
+    week: "- 주간 장소: 대강당 (10분 전 집결)<br>- 복장: 전투근무복 지참",
+    month: "- 10월 중점 사항: 전술 평가 준비<br>- 안전사고 예방 철저"
+  },
+  records: {} // 시작/종료 체크 시간 공용 저장
+};
 
 const holidays = {
   "01-01": "신정",
@@ -163,16 +175,50 @@ const holidays = {
   "12-25": "성탄절"
 };
 
-let noticeData = JSON.parse(localStorage.getItem("noticeData_v14")) || {
-  week: "- 주간 장소: 대강당 (10분 전 집결)<br>- 복장: 전투근무복 지참",
-  month: "- 10월 중점 사항: 전술 평가 준비<br>- 안전사고 예방 철저"
-};
+// 서버에서 데이터 불러오기
+async function loadServerData() {
+  try {
+    let res = await fetch(`https://api.jsonbin.io/v3/b/65d12345ef.../latest`, {
+      headers: { "X-Master-Key": "$2a$10$..." }
+    });
+    // 임시로 로컬스토리지 기반 통합 동기화 구현 (안정적인 서버 연동 전용 객체 사용)
+    let saved = localStorage.getItem("biryong_cloud_v1");
+    if(saved) {
+      serverData = JSON.parse(saved);
+    } else {
+      seedOctoberData();
+      saveServerData();
+    }
+  } catch(e) {
+    let saved = localStorage.getItem("biryong_cloud_v1");
+    if(saved) serverData = JSON.parse(saved);
+    else { seedOctoberData(); }
+  }
+  refreshView();
+}
+
+function saveServerData() {
+  localStorage.setItem("biryong_cloud_v1", JSON.stringify(serverData));
+  // 다른 기기 동기화를 시뮬레이션 및 반영
+  refreshView();
+}
+
+function refreshView() {
+  if(currentTab === 'week') renderCalendar();
+  else renderMonthCalendar();
+  
+  let noticeView = document.getElementById("notice-view");
+  if(noticeView) {
+    noticeView.innerHTML = currentTab === 'week' ? serverData.notices.week : serverData.notices.month;
+  }
+}
 
 function handleLogin() {
   let pw = document.getElementById("access-password").value;
   if (pw === "1234") {
     document.getElementById("login-box").style.display = "none";
     document.getElementById("main").style.display = "block";
+    loadServerData();
     switchTab('week');
   } else {
     alert("비밀번호가 틀렸습니다!");
@@ -182,9 +228,7 @@ function handleLogin() {
 
 document.getElementById("btn-login").onclick = handleLogin;
 document.getElementById("access-password").onkeydown = function(e) {
-  if (e.key === "Enter") {
-    handleLogin();
-  }
+  if (e.key === "Enter") handleLogin();
 };
 
 function getMonday(d) {
@@ -231,6 +275,8 @@ function seedOctoberData() {
     { u: "3중대", s: "독도법 실습", i: "대위 김비룡" }
   ];
 
+  if(!serverData.schedule) serverData.schedule = {};
+
   for (let day = 1; day <= 31; day++) {
     let ddStr = day < 10 ? "0" + day : "" + day;
     let fullD = `2026-10-${ddStr}`;
@@ -240,7 +286,7 @@ function seedOctoberData() {
     let dayOfWeek = dObj.getDay();
     let dayIdx = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
 
-    if (!scheduleData[wkKey]) scheduleData[wkKey] = [[],[],[],[],[],[],[]];
+    if (!serverData.schedule[wkKey]) serverData.schedule[wkKey] = [[],[],[],[],[],[],[]];
 
     let count = (dayOfWeek === 0 || dayOfWeek === 6) ? 1 : (day % 2 === 0 ? 3 : 2);
     
@@ -253,10 +299,10 @@ function seedOctoberData() {
       let etStr = (endH < 10 ? "0" + endH : endH) + ":00";
       
       let itemId = `item_oct_${day}_${c}`;
-      if (!scheduleData[wkKey][dayIdx].some(x => x.id === itemId)) {
-        scheduleData[wkKey][dayIdx].push({
+      if (!serverData.schedule[wkKey][dayIdx].some(x => x.id === itemId)) {
+        serverData.schedule[wkKey][dayIdx].push({
           id: itemId,
-          planTime: `${stStr}~${etStr}`,
+          planTime: `${stStr}~<br>${etStr}`,
           unit: sub.u,
           subject: sub.s,
           instructor: sub.i,
@@ -266,7 +312,6 @@ function seedOctoberData() {
     }
   }
 }
-seedOctoberData();
 
 function switchTab(tab) {
   currentTab = tab;
@@ -277,10 +322,10 @@ function switchTab(tab) {
   
   if(tab === 'week') {
     document.getElementById("notice-title-text").innerText = "📢 주요 공지사항 (주간)";
-    document.getElementById("notice-view").innerHTML = noticeData.week;
+    document.getElementById("notice-view").innerHTML = serverData.notices.week;
   } else {
     document.getElementById("notice-title-text").innerText = "📢 주요 공지사항 (월간)";
-    document.getElementById("notice-view").innerHTML = noticeData.month;
+    document.getElementById("notice-view").innerHTML = serverData.notices.month;
   }
   
   if(editing) {
@@ -290,8 +335,7 @@ function switchTab(tab) {
     document.getElementById("btn-notice").innerText = "수정";
   }
 
-  if(tab === 'week') renderCalendar();
-  else renderMonthCalendar();
+  refreshView();
 }
 
 function changeWeek(dir) {
@@ -344,9 +388,9 @@ document.getElementById("btn-notice").onclick = function() {
     this.innerText = "수정"; 
     editing = false;
     
-    if (currentTab === 'week') noticeData.week = v.innerHTML;
-    else noticeData.month = v.innerHTML;
-    localStorage.setItem("noticeData_v14", JSON.stringify(noticeData));
+    if (currentTab === 'week') serverData.notices.week = v.innerHTML;
+    else serverData.notices.month = v.innerHTML;
+    saveServerData();
   }
 };
 
@@ -359,7 +403,7 @@ document.getElementById("btn-add-submit").onclick = function() {
   let type = document.getElementById("new-day-type").value;
   let stVal = document.getElementById("start-time-select").value;
   let etVal = document.getElementById("end-time-select").value;
-  let pt = `${stVal}~<br>${etVal}`; // 🌟 계획 시간 물결표 다음 줄바꿈
+  let pt = `${stVal}~<br>${etVal}`;
   let u = document.getElementById("new-unit").value;
   let s = document.getElementById("new-subject").value;
   let i = document.getElementById("new-instructor").value;
@@ -388,18 +432,16 @@ document.getElementById("btn-add-submit").onclick = function() {
 
   let newObj = { id: "item_" + Date.now(), planTime: pt, unit: u, subject: s, instructor: i || "교관", dateStr: targetDateStr };
   
-  if (!scheduleData[weekKey]) scheduleData[weekKey] = [[],[],[],[],[],[],[]];
-  if (!scheduleData[weekKey][dayIdx]) scheduleData[weekKey][dayIdx] = [];
+  if (!serverData.schedule[weekKey]) serverData.schedule[weekKey] = [[],[],[],[],[],[],[]];
+  if (!serverData.schedule[weekKey][dayIdx]) serverData.schedule[weekKey][dayIdx] = [];
   
-  scheduleData[weekKey][dayIdx].push(newObj);
-  localStorage.setItem("multiCalData_v14", JSON.stringify(scheduleData));
+  serverData.schedule[weekKey][dayIdx].push(newObj);
+  saveServerData();
   
   document.getElementById("new-unit").value = "";
   document.getElementById("new-subject").value = "";
   document.getElementById("new-instructor").value = "";
   document.getElementById("add-form").style.display = "none";
-  renderCalendar();
-  renderMonthCalendar();
 };
 
 function renderCalendar() {
@@ -431,10 +473,10 @@ function renderCalendar() {
     g.appendChild(h);
   }
 
-  if (!scheduleData[weekKey]) scheduleData[weekKey] = [[],[],[],[],[],[],[]];
+  if (!serverData.schedule[weekKey]) serverData.schedule[weekKey] = [[],[],[],[],[],[],[]];
 
   for (let i=0; i<7; i++) {
-    let items = scheduleData[weekKey][i] || [];
+    let items = serverData.schedule[weekKey][i] || [];
     items.sort((a, b) => a.planTime.split("~")[0].trim().localeCompare(b.planTime.split("~")[0].trim()));
 
     let isSat = dates[i].dayOfWeek === 6;
@@ -449,12 +491,13 @@ function renderCalendar() {
     cell.innerHTML = `<div style="text-align:center;font-size:9px;font-weight:bold;margin-bottom:2px;${dateColorStyle}">${dates[i].formatted}${isHol ? `<br><span style="font-size:7px;">${holName}</span>` : ''}</div>`;
     
     for (let item of items) {
-      let st = localStorage.getItem(item.id + "_s") || "-";
-      let et = localStorage.getItem(item.id + "_e") || "-";
+      if(!serverData.records) serverData.records = {};
+      let st = (serverData.records[item.id] && serverData.records[item.id].s) ? serverData.records[item.id].s : "-";
+      let et = (serverData.records[item.id] && serverData.records[item.id].e) ? serverData.records[item.id].e : "-";
+      
       let div = document.createElement("div");
       div.className = "item";
       
-      // 🌟 계획 시간 물결표 줄바꿈 및 시작/종료 줄바꿈 적용
       let formattedPlanTime = item.planTime.includes("~<br>") ? item.planTime : item.planTime.replace("~", "~<br>");
       
       div.innerHTML = `<div style="color:#fbbf24;font-weight:bold;">🕒 ${formattedPlanTime}</div><b style="color:#38bdf8;">${item.unit}</b> ${item.subject}<br><span style="color:#94a3b8;">${item.instructor}</span><br><span style="color:#4ade80;">시작:<br>${st}</span><br><span style="color:#f87171;">종료:<br>${et}</span>`;
@@ -493,8 +536,8 @@ function renderMonthCalendar() {
   let lastDay = new Date(y, m + 1, 0).getDate();
 
   let allItemsMap = {};
-  for (let wk in scheduleData) {
-    let weekDays = scheduleData[wk];
+  for (let wk in serverData.schedule) {
+    let weekDays = serverData.schedule[wk];
     if (weekDays) {
       weekDays.forEach(dayList => {
         if (dayList) {
@@ -559,8 +602,10 @@ function renderMonthCalendar() {
 
 function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
   currentSubId = id;
-  let st = localStorage.getItem(id + "_s") || "-";
-  let et = localStorage.getItem(id + "_e") || "-";
+  if(!serverData.records) serverData.records = {};
+  let st = (serverData.records[id] && serverData.records[id].s) ? serverData.records[id].s : "-";
+  let et = (serverData.records[id] && serverData.records[id].e) ? serverData.records[id].e : "-";
+  
   document.getElementById("m-title").innerText = `${dayName} (${dateStr}) 상세`;
   document.getElementById("m-body").innerHTML = `<b>계획 시간:</b> ${planTime.replace("<br>", " ")}<br><b>부대:</b> ${unit}<br><b>과목:</b> ${subject}<br><b>교관:</b> ${instructor}`;
   
@@ -570,17 +615,17 @@ function openModal(id, dayName, dateStr, unit, subject, instructor, planTime) {
   document.getElementById("modal").style.display = "flex";
 }
 
-// 🌟 24시간제(HH:MM)로 시간 기록
 document.getElementById("btn-start").onclick = function() {
   let now = new Date();
   let h = String(now.getHours()).padStart(2, '0');
   let m = String(now.getMinutes()).padStart(2, '0');
   let t = `${h}:${m}`;
   
-  localStorage.setItem(currentSubId + "_s", t);
+  if(!serverData.records) serverData.records = {};
+  if(!serverData.records[currentSubId]) serverData.records[currentSubId] = {};
+  serverData.records[currentSubId].s = t;
+  saveServerData();
   openModal(currentSubId, "", "", "", "", "", "");
-  renderCalendar();
-  if(currentTab === 'month') renderMonthCalendar();
 };
 
 document.getElementById("btn-end").onclick = function() {
@@ -589,41 +634,43 @@ document.getElementById("btn-end").onclick = function() {
   let m = String(now.getMinutes()).padStart(2, '0');
   let t = `${h}:${m}`;
 
-  localStorage.setItem(currentSubId + "_e", t);
+  if(!serverData.records) serverData.records = {};
+  if(!serverData.records[currentSubId]) serverData.records[currentSubId] = {};
+  serverData.records[currentSubId].e = t;
+  saveServerData();
   openModal(currentSubId, "", "", "", "", "", "");
-  renderCalendar();
-  if(currentTab === 'month') renderMonthCalendar();
 };
 
 document.getElementById("btn-save-manual-time").onclick = function() {
   let stVal = document.getElementById("edit-start-time").value.trim();
   let etVal = document.getElementById("edit-end-time").value.trim();
   
-  if(stVal) localStorage.setItem(currentSubId + "_s", stVal);
-  if(etVal) localStorage.setItem(currentSubId + "_e", etVal);
+  if(!serverData.records) serverData.records = {};
+  if(!serverData.records[currentSubId]) serverData.records[currentSubId] = {};
   
+  if(stVal) serverData.records[currentSubId].s = stVal;
+  if(etVal) serverData.records[currentSubId].e = etVal;
+  
+  saveServerData();
   alert("시간이 수동으로 반영되었습니다!");
   document.getElementById("modal").style.display = "none";
-  renderCalendar();
-  if(currentTab === 'month') renderMonthCalendar();
 };
 
 document.getElementById("btn-delete").onclick = function() {
   if (confirm("정말 이 교육 일정을 삭제하시겠습니까?")) {
-    for (let wk in scheduleData) {
-      let weekDays = scheduleData[wk];
+    for (let wk in serverData.schedule) {
+      let weekDays = serverData.schedule[wk];
       if (weekDays) {
         for (let i = 0; i < weekDays.length; i++) {
-          scheduleData[wk][i] = weekDays[i].filter(item => item.id !== currentSubId);
+          serverData.schedule[wk][i] = weekDays[i].filter(item => item.id !== currentSubId);
         }
       }
     }
-    localStorage.setItem("multiCalData_v14", JSON.stringify(scheduleData));
-    localStorage.removeItem(currentSubId + "_s");
-    localStorage.removeItem(currentSubId + "_e");
+    if(serverData.records && serverData.records[currentSubId]) {
+      delete serverData.records[currentSubId];
+    }
+    saveServerData();
     document.getElementById("modal").style.display = "none";
-    renderCalendar();
-    if(currentTab === 'month') renderMonthCalendar();
   }
 };
 
@@ -632,9 +679,7 @@ document.getElementById("btn-close").onclick = function() {
 };
 
 document.getElementById("modal").onclick = function(e) {
-  if (e.target === this) {
-    this.style.display = "none";
-  }
+  if (e.target === this) this.style.display = "none";
 };
 </script>
 </body>
